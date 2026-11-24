@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MonitoraEA — Estrutura de entidades e conexões</title>
+<style>
+:root{--bg:#fafaf7;--fg:#1d2a24;--mut:#5d6b64;--line:#d9ddd6;--card:#fff;--acc:#1f7a4d;--prop:#b45309;--propbg:#fdf0dc;--nodebg:#e8f1ec;--sel:#1f7a4d;--ok:#d9efe2;--no:#f1f1ee}
+@media(prefers-color-scheme:dark){:root{--bg:#141a17;--fg:#e6ece8;--mut:#9aa9a1;--line:#2c3631;--card:#1b231f;--acc:#5fcf9a;--prop:#f3b25c;--propbg:#3a2c14;--nodebg:#22302a;--sel:#5fcf9a;--ok:#1f3a2c;--no:#202824}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:1060px;margin:0 auto;padding:32px 20px 80px}
+h1{font-size:30px;margin:0 0 6px}h2{font-size:22px;margin:48px 0 8px;border-top:1px solid var(--line);padding-top:28px}h3{font-size:17px;margin:20px 0 4px}
+p{margin:8px 0}.sub{color:var(--mut)}.lead{font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card b{display:block;margin-bottom:2px}
+.tag{display:inline-block;font-size:12px;border-radius:99px;padding:1px 9px;background:var(--nodebg);color:var(--mut);margin-left:6px;white-space:nowrap}
+.tag.p{background:var(--propbg);color:var(--prop)}
+svg{width:100%;height:auto;display:block}
+.diagram{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+.node{cursor:pointer}.node rect{fill:var(--nodebg);stroke:var(--line);stroke-width:1.5;transition:.15s}
+.node.prop rect{fill:var(--propbg);stroke:var(--prop)}
+.node:hover rect{stroke:var(--sel)}.node.sel rect{stroke:var(--sel);stroke-width:3}
+.node.dim{opacity:.35}
+.node text{fill:var(--fg);font-size:15px;font-weight:600;text-anchor:middle;pointer-events:none}
+.node text.s{font-size:11px;font-weight:400;fill:var(--mut)}
+.abs rect{fill:none;stroke:var(--acc);stroke-width:2;stroke-dasharray:6 4}
+.abs text{fill:var(--acc);font-size:16px;font-weight:700;text-anchor:middle}
+.gen{stroke:var(--mut);stroke-width:1.5;fill:none}
+.arrow{stroke:var(--prop);stroke-width:2.2;fill:none;marker-end:url(#ah)}
+.r1{stroke:var(--acc);stroke-width:2;fill:none;marker-end:url(#ah2)}
+.lbl{font-size:12px;fill:var(--mut)}.lblp{font-size:12px;fill:var(--prop);font-weight:600}.lbla{font-size:12px;fill:var(--acc);font-weight:600}
+.hint{font-size:14px;color:var(--mut);margin:8px 4px}
+#panel{margin-top:14px}
+#panel .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px}
+#panel h3{margin:0;font-size:20px}
+details{border:1px solid var(--line);border-radius:8px;background:var(--card);margin:6px 0}
+summary{cursor:pointer;padding:9px 14px;font-weight:600}
+summary .n{color:var(--mut);font-weight:400;font-size:13px;margin-left:6px}
+ul.f{list-style:none;margin:0;padding:2px 14px 12px}
+ul.f li{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-top:1px dashed var(--line);font-size:15px}
+ul.f li span{color:var(--mut);font-size:12px;white-space:nowrap}
+button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:5px 12px;cursor:pointer}
+button:hover{border-color:var(--sel)}
+table{border-collapse:collapse;width:100%;font-size:15px;background:var(--card)}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--nodebg)}
+.mx td,.mx th{text-align:center;font-size:14px;padding:6px 4px}.mx td.y{background:var(--ok);font-weight:700}.mx td.n{background:var(--no);color:var(--mut)}.mx th:first-child{text-align:left}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.note{border-left:4px solid var(--prop);background:var(--propbg);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:15px}
+ol.q li,ul.q li{margin:6px 0}
+footer{margin-top:50px;color:var(--mut);font-size:13px}
+@media print{.toolbar,button{display:none}details{open:true}}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Entidades e conexões no MonitoraEA</h1>
+<p class="sub">Descrição organizacional da rede de iniciativas de educação ambiental (EA) — material de apoio para análise de redes sociais (SNA). Versão de 24/11/2026.</p>
+
+<h2 style="border:0;margin-top:24px;padding-top:0">1. Visão geral</h2>
+<p class="lead">O MonitoraEA trata todo agente cadastrado como uma <b>entidade</b>: um nó numa rede. Os sete tipos de entidade foram cadastrados em momentos diferentes, cada um com seu formulário próprio, mas todos se relacionam pela mesma lógica unificada.</p>
+<div class="grid">
+  <div class="card"><b>Nós</b>Cada cadastro (organização, centro, colegiado, iniciativa, etc.) é um nó, com um identificador único, um nome e um tipo.</div>
+  <div class="card"><b>Arestas</b>Cada conexão é uma relação entre duas entidades, com um <i>tipo</i> (9 possíveis) e, quando faz sentido, um <i>sentido</i> (quem oferece e quem recebe).</div>
+  <div class="card"><b>Regras</b>Três regras (R.1 a R.3) definem quem pode ser <i>proponente</i> de quem. Os demais tipos de relação não têm restrição de pares.</div>
+  <div class="card"><b>Formato</b>Lista de nós e lista de arestas, o que permite exportar direto para ferramentas de grafos (Gephi, igraph, NetworkX).</div>
+</div>
+
+<h2>2. Diagrama interativo</h2>
+<p>Clique em uma entidade para <b>ver seus campos</b> e, se ela puder ser proponente, <b>quem ela pode propor</b>. Entidades em laranja podem ser proponentes (regras R.2 e R.3).</p>
+<div class="toolbar"><button id="clear">Limpar seleção</button></div>
+<div class="diagram">
+<svg id="svg" viewBox="0 0 1100 470" role="img" aria-label="Diagrama de entidades e relações">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--prop)"/></marker>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--acc)"/></marker>
+  </defs>
+  <g class="abs"><rect x="440" y="40" width="220" height="56" rx="10"/><text x="550" y="64">ENTIDADE</text><text x="550" y="84" style="font-size:11px;font-weight:400">abstração comum a todos os nós</text></g>
+  <!-- R.1 autolaço -->
+  <path class="r1" d="M600 40 C600 4 700 4 700 40 C700 62 672 66 662 66"/>
+  <text class="lbla" x="720" y="24">R.1 — qualquer relação com outra entidade,</text>
+  <text class="lbla" x="720" y="40">exceto proponência</text>
+  <g id="gens"></g>
+  <g id="arrows"></g>
+  <g id="nodes"></g>
+  <text id="svgmsg" class="lbl" x="550" y="440" text-anchor="middle"></text>
+</svg>
+</div>
+<p class="hint">Linhas cinzas com triângulo vazio indicam “é um tipo de” (herança). Setas laranjas = proponência (de quem propõe para quem é proposto).</p>
+<div id="panel"></div>
+
+<h2>3. Quem pode ser proponente de quem</h2>
+<p>Resultado das regras R.2 e R.3 do documento. Lê-se: <b>linha</b> pode ser proponente de <b>coluna</b>. Entidades que não aparecem como linhas (iniciativa, educom, PPEA, ZCM) não propõem outras entidades.</p>
+<div id="matrix"></div>
+<ul class="q">
+ <li><b>R.2</b> — uma organização pode ser proponente de outra entidade, exceto de outras organizações.</li>
+ <li><b>R.3</b> — um colegiado ou centro pode ser proponente de outra entidade, exceto de entidades do mesmo tipo e de organizações.</li>
+</ul>
+
+<h2>4. Tipos de relação e sentido</h2>
+<p>O <b>sentido</b> indica quem oferece (A) e quem recebe (B) o benefício. Relações de benefício mútuo não têm sentido.</p>
+<table>
+<tr><th>Tipo de relação</th><th>Sentido</th><th>Observação</th></tr>
+<tr><td>Proponência</td><td>Dirigida (proponente → proposto)</td><td>Sujeita às regras R.1–R.3. Declarada no próprio cadastro da entidade proposta.</td></tr>
+<tr><td>Fomento financeiro</td><td>Dirigida (quem financia → quem recebe)</td><td></td></tr>
+<tr><td>Alinhamento de princípios e diretrizes</td><td>—</td><td>Definido no documento.</td></tr>
+<tr><td>Atuação em instrumentos específicos</td><td>—</td><td>Definido no documento.</td></tr>
+<tr><td>Atuação em planos e programas conectados</td><td>—</td><td>Definido no documento.</td></tr>
+<tr><td>Atuação em atividades vinculadas</td><td>—</td><td>Definido no documento.</td></tr>
+<tr><td>Compartilhamento de infraestrutura</td><td>Dirigida (quem oferece → quem recebe)</td><td></td></tr>
+<tr><td>Compartilhamento de recursos humanos</td><td>Dirigida (quem oferece → quem recebe)</td><td></td></tr>
+<tr><td>Compartilhamento de informações</td><td>Sem sentido (benefício mútuo)</td><td>Para análise, tratar como aresta não dirigida.</td></tr>
+</table>
+<div class="note">As classificações de sentido da tabela seguem o texto do documento (proponência e informações explícitas) e a lógica “oferece/recebe” da tela de conexões. A classificação “—” indica tipos para os quais o documento ainda não define o sentido.</div>
+
+<h3>Atributos de cada conexão</h3>
+<div class="grid">
+ <div class="card"><b>Tipo</b>Um dos nove tipos acima, ou “Outra” (texto livre).</div>
+ <div class="card"><b>Sentido</b>Quem oferece e quem recebe.</div>
+ <div class="card"><b>Perfil de institucionalização</b>Formalizado, em construção ou informal.</div>
+ <div class="card"><b>Reconhecimento pela outra parte</b>Quem declara a relação a indica; a outra entidade pode reconhecer (sim), negar com justificativa (não) ou ainda não ter respondido.</div>
+</div>
+
+<h2>5. Como a rede é alimentada hoje</h2>
+<ol class="q">
+ <li><b>Proponência</b> é declarada nos formulários de cadastro: PPEA, iniciativa, Educom&amp;Clima e ZCM indicam <i>uma</i> organização proponente; o centro pode indicar <i>várias</i>.</li>
+ <li><b>Demais conexões</b> são declaradas na aba “Conexões” de cada cadastro, em dois blocos: “recebe apoio” e “oferece apoio”. Cada linha indica a organização e a iniciativa ligada, o tipo e o perfil de institucionalização.</li>
+ <li>A outra entidade vê as relações em que foi indicada e pode <b>reconhecê-las ou contestá-las</b>.</li>
+ <li>Quando uma organização ainda não está cadastrada, ela é <b>criada como nó</b> no momento em que alguém a indica (apenas com o nome).</li>
+</ol>
+
+<h3>Pontos de atenção para a análise</h3>
+<ul class="q">
+ <li><b>As regras R.1–R.3 são diretrizes do desenho.</b> Hoje são seguidas pela forma como as telas oferecem as opções, e não por uma validação formal dos dados. Vale checar a rede real contra as regras.</li>
+ <li><b>Cobertura parcial dos tipos.</b> A tela de conexões oferece hoje 4 dos 9 tipos (fomento, infraestrutura, recursos humanos, informações) mais “Outra”. Os tipos de atuação e alinhamento ainda não são declarados por essa tela.</li>
+ <li><b>Colegiados</b> existem como nós, mas o cadastro ainda não traz um campo de proponência.</li>
+ <li><b>Organizações</b> são nós “magros” (somente o nome), sem atributos como porte, setor ou território.</li>
+ <li><b>Relações declaradas por um lado só.</b> Parte das arestas pode estar não confirmada pela outra entidade; o atributo de reconhecimento permite filtrar arestas confirmadas, contestadas e pendentes.</li>
+ <li><b>Dupla leitura da proponência.</b> Entre organização e iniciativa existe a proponência (vínculo estrutural) e, em separado, relações de apoio; convém analisar as duas camadas separadamente.</li>
+ <li><b>Rede de pessoas.</b> Os perfis de usuário individuais (rede social de EA) estão em desenho e ainda não fazem parte desta estrutura.</li>
+</ul>
+
+<footer>Fontes: documento “Entidades e Conexões” (seção Lógica de organização) e formulários do sistema. Campos listados conforme os formulários atuais; o tipo de cada campo aparece à direita.</footer>
+</main>
+
+<script>
+const DATA={"ppea":[{"group":"Sobre a iniciativa governamental","fields":[["Este cadastro se refere a","escolha"],["Especifique","texto"],["Nome da Iniciativa Governamental","texto"],["Área da Iniciativa Governamental","escolha"],["Especifique","texto"],["Nome","texto"],["Cargo/Função","texto"],["Telefone","texto"],["Email","texto"],["Link para acesso à informações da Iniciativa Governamental","texto"],["Cite quais as ações, projetos, programas e planos estão contemplados pela iniciativa","texto longo"],["Fase atual da Iniciativa Governamental","escolha"],["Desde que ano esta etapa da iniciativa vem sendo desenvolvida","ano"],["Descrição","texto"],["Principais dificuldades no processo de construção/implementação da iniciativa","múltipla escolha"]]},{"group":"Sobre a Organização","fields":[["Nome da Organização Executora","vínculo c/ entidade"]]}],"iniciativa":[{"group":"Sobre a iniciativa","fields":[["Nome da Iniciativa","texto"],["Tema/Área da Iniciativa","múltipla escolha"],["Objetivos da Iniciativa","texto longo"],["Resumo","texto longo"],["Link para acesso à informações sobre a Iniciativa","texto"],["Estados","múltipla escolha"],["Data de inicio da Iniciativa (real ou estimada)","data"],["Data de conclusão da Iniciativa (real ou estimada)","data"],["Públicos","múltipla escolha"],["Financiadores","texto longo"]]},{"group":"Sobre a Organização","fields":[["Nome da Organização Executora","vínculo c/ entidade"]]},{"group":"Responsável","fields":[["Nome","texto"],["Cargo/Função","texto"],["Telefone","texto"],["Email","texto"]]}],"educom":[{"group":"Sobre a iniciativa","fields":[["Nome da Iniciativa","texto"],["E-mail do responsável","texto"],["Tipo de Organização","escolha"],["Nível Territorial","múltipla escolha"],["Estados de atuação","múltipla escolha"],["Apresentação","texto longo"],["Redes Sociais","texto"],["Outros detalhes","texto longo"],["Idades","múltipla escolha"],["Relação Gênero/Sexo","múltipla escolha"],["Relação Étnica","múltipla escolha"],["Temas","múltipla escolha"],["Mídias","múltipla escolha"],["Materiais Didáticos","texto longo"],["Estratégias Educativas","múltipla escolha"],["Recebeu Notícia Falsa?","escolha"],["Exemplo de Notícia Falsa","texto longo"],["Aborda desinformação?","escolha"],["Exemplo de desinformação","texto longo"]]},{"group":"Sobre a Organização","fields":[["Nome da Organização Executora","vínculo c/ entidade"]]}],"centro":[{"group":"Sobre a Iniciativa","fields":[["Logotipo","imagem"],["Nome da estrutura","texto"],["Como a estrutura se reconhece / identifica?","escolha"],["Especificar","texto"],["Estado (Sede da estrutura)","escolha"],["Município (Sede da estrutura)","escolha"]]},{"group":"Detalhamento","fields":[["Descrição","texto longo"],["Data da versão mais atual","data"],["Tipo de documento de detalhamento","escolha"],["Link para o detalhamento interno","texto"],["Arquivo de detalhamento","arquivo"]]},{"group":"Organizações proponentes","fields":[["Nome da Organização","vínculo c/ entidade"]]},{"group":"Gestores responsáveis","fields":[["Nome","texto"],["E-mail","texto"],["Telefone","texto"]]},{"group":"Institucional","fields":[["Data da criação da estrutura","data"],["Possui instrumento jurídico de institucionalização?","escolha"],["Data da institucionalização","data"],["CNPJ do CECSA","texto"]]},{"group":"Estratégia de sustentabilidade","fields":[["Descrição","texto longo"],["Data da versão mais atual","data"],["Tipo de documento de estrategia","escolha"],["Link para o estrategia interno","texto"],["Arquivo de estrategia","arquivo"]]},{"group":"Resultados e produtos gerados","fields":[["Tipo","escolha"],["Link","texto"],["Data da versão mais atual","data"]]},{"group":"Dados da estrutura","fields":[["Possui PPP (Projeto Político-Pedagógico)?","escolha"],["Tipo de documento de PPP","escolha"],["Link para o documento de PPP","texto"],["Arquivo de PPP","arquivo"],["Data da última revisão","data"],["Possui espaço físico?","escolha"],["Possui equipe dedicada?","escolha"],["Qual o grau de previsibilidade da sustentação financeira da estrutura?","escolha"]]},{"group":"Estratégia de atuação da estrutura","fields":[["Qual a escala declarada para a realização das atividades da estrutura?","escolha"],["Qual a faixa de beneficiários/ano atendidos pela estrutura?","escolha"]]},{"group":"Temas de atuação","fields":[["Especificar outros temas","texto"]]}],"colegiado":[{"group":"Sobre o colegiado","fields":[["Nome do Colegiado","texto"],["Tipo de Colegiado","escolha"],["Especifique o tipo de colegiado","texto"],["Nível de atuação","escolha"],["Especifique o nível de atuação","texto"],["Estados","múltipla escolha"]]},{"group":"Detalhes do colegiado","fields":[["Logotipo","imagem"],["Data da criação","ano"],["Ativo","escolha"],["Link para o site","texto"],["Observações","texto longo"]]},{"group":"Documento de criação","fields":[["Título do documento de criação","texto"],["Tipo de documento de criação","escolha"],["Link para o documento de criação","texto"],["Arquivo de criação","arquivo"]]},{"group":"Composição","fields":[["Núm. cadeiras - setor público","número"],["Núm. cadeiras - sociedade civil","número"],["Setor","texto"],["Cadeiras","número"]]},{"group":"Órgão Gestor","fields":[["Tipo de órgão gestor","escolha"],["Especifique","texto"]]},{"group":"Coordenação","fields":[["Nome","texto"],["E-mail","texto"],["Telefone","texto"],["Início do mandato","data"],["Fim do mandato","data"]]},{"group":"Regimento interno","fields":[["Tem regimento?","escolha"],["Título do regimento interno","texto"],["Tipo de documento de regimento","escolha"],["Link para o regimento interno","texto"],["Arquivo de regimento","arquivo"]]},{"group":"Organização interna","fields":[["Periodicidade","escolha"],["Especifique","texto"],["Possui câmaras técnicas ou grupos de trabalho?","escolha"],["Especifique","texto"]]},{"group":"Identifique a Política Pública de EA que o colegiado acompanha em seu nível de atuação","fields":[["Há Política Pública de EA?","escolha"]]},{"group":"Política pública de EA","fields":[["Tipo de documento de política pública","escolha"],["Link para a política pública","texto"],["Arquivo de política pública","arquivo"],["Decreto","texto"],["Lei","texto"]]},{"group":"Existe Política Pública de Mudanças do Clima em seu nível de atuação?","fields":[["Existe?","escolha"]]},{"group":"Política de Mudanças do Clima","fields":[["Tipo de documento de política pública","escolha"],["Link para a política pública","texto"],["Arquivo de política pública","arquivo"],["Decreto","texto"],["Lei","texto"]]},{"group":"A política de EA que este colegiado acompanha se desdobrou em um Programa de EA?","fields":[["Acompanha?","escolha"]]},{"group":"Programa de EA","fields":[["Tipo de documento","escolha"],["Link para o programa","texto"],["Arquivo do programa","arquivo"],["Decreto","texto"],["Lei","texto"]]},{"group":"A política de EA que este colegiado acompanha se desdobrou em um Plano de EA?","fields":[["Desdobrou?","escolha"]]},{"group":"Plano de EA","fields":[["Tipo de documento","escolha"],["Link para o plano","texto"],["Arquivo do plano","arquivo"],["Decreto","texto"],["Lei","texto"]]},{"group":"O colegiado acompanha alguma outra política pública?","fields":[["Acompanha?","escolha"]]},{"group":"Outra política pública","fields":[["Tipo de documento","escolha"],["Link para a política pública","texto"],["Arquivo da política pública","arquivo"],["Decreto","texto"],["Lei","texto"]]}],"zcm":[{"group":"Sobre o projeto/ação","fields":[["Nome da iniciativa","texto"],["Nome da organização (proponente)","vínculo c/ entidade"],["Modalidade","escolha"],["Situação do desenvolvimento","escolha"],["Temáticas socioambientais","múltipla escolha"],["Públicos","múltipla escolha"],["PPEA vinculado","escolha"]]},{"group":"Abrangência","fields":[["Regiões","múltipla escolha"],["Estados","múltipla escolha"],["Justificativa","texto longo"]]}],"organizacao":[{"group":"Cadastro mínimo","fields":[["Nome","texto"]]}]};
+const ENT=[
+ {k:'organizacao',n:'Organização',s:'executora / proponente',p:1},
+ {k:'colegiado',n:'Colegiado',s:'políticas públicas de EA',p:1},
+ {k:'centro',n:'Centro',s:'educação e coop. socioambiental',p:1},
+ {k:'iniciativa',n:'Iniciativa',s:'não governamental',p:0},
+ {k:'educom',n:'Educom&Clima',s:'iniciativa',p:0},
+ {k:'ppea',n:'PPEA',s:'iniciativa governamental',p:0},
+ {k:'zcm',n:'ZCM',s:'projetos e ações do PPPZCM',p:0}
+];
+const canPropose=(a,b)=>{ if(!ENT.find(e=>e.k===a).p) return false;
+  if(a==='organizacao') return b!=='organizacao';
+  return b!==a && b!=='organizacao'; };
+const W=140,G=14,X0=(1100-(7*W+6*G))/2,Y=250,H=64;
+const cx=i=>X0+i*(W+G)+W/2;
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+let sel=null;
+
+// herança
+$('gens').innerHTML = `<path class="gen" d="M550 112V190"/><path d="M542 112L550 96L558 112z" fill="var(--card)" stroke="var(--mut)" stroke-width="1.5" transform="translate(0,0)"/><path class="gen" d="M${cx(0)} 190H${cx(6)}"/>`+
+  ENT.map((e,i)=>`<path class="gen" d="M${cx(i)} 190V${Y}"/>`).join('')+
+  `<text class="lbl" x="560" y="140">E</text>`;
+
+function drawNodes(){
+  $('nodes').innerHTML = ENT.map((e,i)=>{
+    const cls=['node',e.p?'prop':'',sel===e.k?'sel':'',sel&&sel!==e.k&&!canPropose(sel,e.k)?'dim':''].join(' ');
+    const n=DATA[e.k].reduce((a,g)=>a+g.fields.length,0);
+    return `<g class="${cls}" data-k="${e.k}" tabindex="0" role="button" aria-label="${e.n}"><rect x="${cx(i)-W/2}" y="${Y}" width="${W}" height="${H}" rx="10"/><text x="${cx(i)}" y="${Y+26}">${e.n}</text><text class="s" x="${cx(i)}" y="${Y+44}">${n} campo${n>1?'s':''}</text>${e.p?`<text class="lblp" x="${cx(i)}" y="${Y+H+16}" style="text-anchor:middle">pode propor</text>`:''}</g>`;
+  }).join('');
+  document.querySelectorAll('.node').forEach(g=>{
+    g.onclick=()=>select(g.dataset.k);
+    g.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(g.dataset.k)}};
+  });
+}
+function drawArrows(){
+  let h='';
+  if(sel && ENT.find(e=>e.k===sel).p){
+    const a=ENT.findIndex(e=>e.k===sel);
+    ENT.forEach((e,b)=>{ if(a===b||!canPropose(sel,e.k))return;
+      const x1=cx(a),x2=cx(b),d=Math.abs(x2-x1),dep=Y+H+34+d*0.13;
+      h+=`<path class="arrow" d="M${x1} ${Y+H+20}Q${(x1+x2)/2} ${dep} ${x2} ${Y+H+2}"/>`;
+    });
+  }
+  $('arrows').innerHTML=h;
+  $('svgmsg').textContent = !sel ? 'Selecione uma entidade' : ENT.find(e=>e.k===sel).p ? 'Setas: '+ENT.find(e=>e.k===sel).n+' pode ser proponente destas entidades' : 'Esta entidade não propõe outras; pode ser proposta por organização, colegiado ou centro';
+}
+function panel(){
+  const p=$('panel');
+  if(!sel){p.innerHTML='<p class="hint">Nenhuma entidade selecionada.</p>';return}
+  const e=ENT.find(x=>x.k===sel);
+  const total=DATA[sel].reduce((a,g)=>a+g.fields.length,0);
+  const prop=ENT.filter(o=>canPropose(o.k,sel)).map(o=>o.n);
+  p.innerHTML=`<div class="head"><h3>${e.n}</h3><span class="tag ${e.p?'p':''}">${e.p?'pode ser proponente':'não propõe'}</span><span class="tag">${total} campos</span></div>
+   <p class="sub">${ e.p?'Pode ser proponente de: '+ENT.filter(o=>canPropose(sel,o.k)).map(o=>o.n).join(', ')+'. ':'' }Pode ser proposta por: ${prop.length?prop.join(', '):'—'}.</p>
+   <div class="toolbar"><button id="ex">Expandir tudo</button><button id="co">Recolher tudo</button></div>`+
+   DATA[sel].map((g,i)=>`<details ${i===0?'open':''}><summary>${g.group}<span class="n">${g.fields.length}</span></summary><ul class="f">${g.fields.map(f=>`<li>${f[0]}<span>${f[1]}</span></li>`).join('')}</ul></details>`).join('')+
+   `<p class="hint">Todo nó também tem: identificador único, nome, tipo de entidade e referência ao cadastro de origem. Em toda entidade, a aba “Conexões” permite declarar relações de apoio (recebe/oferece).</p>`;
+  $('ex').onclick=()=>p.querySelectorAll('details').forEach(d=>d.open=true);
+  $('co').onclick=()=>p.querySelectorAll('details').forEach(d=>d.open=false);
+}
+function select(k){sel=sel===k?null:k;drawNodes();drawArrows();panel()}
+$('clear').onclick=()=>{sel=null;drawNodes();drawArrows();panel()};
+drawNodes();drawArrows();panel();
+
+// matriz
+$('matrix').innerHTML='<table class="mx"><tr><th>é proponente de →</th>'+ENT.map(e=>`<th>${e.n}</th>`).join('')+'</tr>'+
+ ENT.filter(e=>e.p).map(a=>`<tr><th>${a.n}</th>`+ENT.map(b=>{const y=canPropose(a.k,b.k);return `<td class="${y?'y':'n'}">${y?'✓':'—'}</td>`}).join('')+'</tr>').join('')+'</table>';
+</script>
+</body>
+</html>
